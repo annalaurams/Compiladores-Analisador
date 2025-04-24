@@ -6,4 +6,4 @@ class Lexeme:
         self.column = column
 
     def __repr__(self):
-        return f"Lexeme(token_type='{self.token_type}', value='{self.value}', line={self.line}, column={self.column})"
+        return f"\nLexeme(token_type='{self.token_type}', value= '{self.value}', line= {self.line}, column= {self.column})"

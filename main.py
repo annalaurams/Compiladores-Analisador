@@ -1,37 +1,27 @@
+import sys
 import os
 from lexical.lexicalAnalysis import LexicalAnalysis
 
-def processar_arquivos(pasta):
-    # Itera sobre todos os arquivos na pasta especificada
-    for filename in os.listdir(pasta):
-        if filename.endswith(".pas"):
-            caminho_arquivo = os.path.join(pasta, filename)
-            print(f"Analisando {filename}...")
-            
-            with open(caminho_arquivo, "r") as file:
-                source_code = file.read()
+def processar_arquivo(caminho_arquivo):
+    if not os.path.exists(caminho_arquivo):
+        print(f"Arquivo '{caminho_arquivo}' não encontrado.")
+        return
 
-            # Executa o analisador léxico
-            lexer = LexicalAnalysis(source_code)
-            tokens = lexer.analyze()
+    print(f"\nArquivo: {os.path.basename(caminho_arquivo)}\n")
+    
+    with open(caminho_arquivo, "r") as file:
+        source_code = file.read()
 
-            # Exibe os tokens encontrados
-            for token in tokens:
-                print(token)
-            print("\n")
+    lexer = LexicalAnalysis(source_code)
+    tokens = lexer.analyze()
+
+    # Exibir lista de tokens
+    for token in tokens:
+        print(token)
 
 if __name__ == "__main__":
-    # Define a pasta onde estão os arquivos .pas
-    pasta_codigos = "codigos_pascal"
-    
-    if os.path.exists(pasta_codigos):
-        processar_arquivos(pasta_codigos)
+    if len(sys.argv) < 2:
+        print("Caminho: python main.py <caminho-do-arquivo>")
     else:
-        print(f"A pasta '{pasta_codigos}' não foi encontrada. Crie-a e adicione arquivos .pas para testar.")
-
-
-#Program nn ta sendo identificado como palavra rerservada 
-#fazer caracter por caracter e identificar o ;
-#Erros
-# tratamento dos numeros
-#   
+        caminho_arquivo = sys.argv[1]
+        processar_arquivo(caminho_arquivo)
