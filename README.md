@@ -53,10 +53,10 @@ python3 main.py codigos_pascal/<nome_arquivo>.pmm
    
 ## ✅ Funcionalidades Implementadas
 
-- ✅ Identificação correta de todos os tokens da linguagem Pascal--
-- ✅ Detecção de tokens inválidos com mensagens de erro e posição no código
-- ✅ Entrada via linha de comando com nome do arquivo
-- ✅ Modularização do código para facilitar manutenção e legibilidade
+- Identificação correta de todos os tokens da linguagem Pascal--
+- Detecção de tokens inválidos com mensagens de erro e posição no código
+- Entrada via linha de comando com nome do arquivo
+- Modularização do código para facilitar manutenção e legibilidade
 
 ## 📦 Resultado Esperado
 
