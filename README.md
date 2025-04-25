@@ -103,7 +103,7 @@ Esse trabalho nos ajudou a entender melhor o funcionamento da parte de análise 
 
 <div>
  <br><p align="justify"> Thaissa Vitoria Guimarães Daldegan de Sousa</p>
- <a href="https://t.me/">
+ <a href="https://t.me/thaissadaldegan">
  <img align="center" src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white"/> 
  </div>
 <a style="color:black" href="mailto:thaissavivi@gmail.com?subject=[GitHub]%20Source%20Dynamic%20Lists">
