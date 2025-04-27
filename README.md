@@ -22,7 +22,7 @@ Criar um programa capaz de **ler arquivos .pmm escritos em Pascal--** e identifi
 
 - `main.py`: Arquivo principal. Executa o analisador léxico.
 - `lexical/`: Pasta com os módulos que contêm a lógica de análise léxica (reconhecimento de tokens, tratamento de erros, etc.).
-- `codigos_pascal/`: Exemplos de arquivos `.pmm` escritos em Pascal-- para teste do analisador.
+- `lista1/`: Exemplos de arquivos `.pmm` escritos em Pascal-- para teste do analisador.
 
 ## 🔍 Tipos de tokens reconhecidos
 Os tokens que são reconhecidos em nosso projeto são:
