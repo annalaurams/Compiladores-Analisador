@@ -6,7 +6,7 @@ var  a, b, c, delta: real;
 
 begin;
 
- //depois de se declarar as variaveis se lˆ os valores de A,B e C que o usuario digitar.
+ //depois de se declarar as variaveis se lï¿½ os valores de A,B e C que o usuario digitar.
 
  clrscr;
  writeln ('caro usuario este programa resolvera uma equacao de segundo grau e te dara o valor de "x".');
@@ -25,10 +25,10 @@ begin;
  writeln ('agora digite o valor de "C"');
  readln (c);
 
- //delta ser  nosso ponto principal pois ‚ dependendo dele que definir  como o programa ir  proceder.
- //caso delta seja menor que 0 entÆo nÆo existe raiz real.
- //caso seja 0 h  uma unica raiz real.
- //caso seja maior que 0 h  duas raizes reais.
+ //delta serï¿½ nosso ponto principal pois ï¿½ dependendo dele que definirï¿½ como o programa irï¿½ proceder.
+ //caso delta seja menor que 0 entï¿½o nï¿½o existe raiz real.
+ //caso seja 0 hï¿½ uma unica raiz real.
+ //caso seja maior que 0 hï¿½ duas raizes reais.
 
  delta:= sqr(b) -4*a*c ;
 
@@ -36,7 +36,7 @@ begin;
 
  if (delta < 0) then
     begin
-    writeln ('nÆo existe raiz real.');
+    writeln ('nï¿½o existe raiz real.');
     end
 
     else if (delta = 0) then
@@ -51,7 +51,7 @@ begin;
                     writeln (  (-b - sqrt(delta)) / (2*a):4:2, ' e a segunda raiz.');
                     end;
 
- //entÆo so nos resta mostrar o resultado ao usuario.
+ //entï¿½o so nos resta mostrar o resultado ao usuario.
 
  writeln (' ');
  write ('para encerrar o programa precione qualquer tecla.');

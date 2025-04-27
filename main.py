@@ -9,7 +9,7 @@ def processar_arquivo(caminho_arquivo):
 
     print(f"\nArquivo: {os.path.basename(caminho_arquivo)}\n")
     
-    with open(caminho_arquivo, "r") as file:
+    with open(caminho_arquivo, "r", encoding="latin-1") as file:
         source_code = file.read()
 
     lexer = LexicalAnalysis(source_code)

@@ -114,9 +114,6 @@ class LexicalAnalysis:
                     op_char = operator[idx]
                     if op_char.isalpha():
                         break
-                    token_type = TokenType.LOGICAL_OPERATORS.get(op_char, "UNKNOWN")
-                    self._add_token(token_type, op_char)
-                    idx += 1
     
     def _handle_number(self):
         start_index = self.current_index
@@ -171,7 +168,7 @@ class LexicalAnalysis:
             (self.source_code[self.current_index].isdigit() or 
             self.source_code[self.current_index] == '.' or 
             self.source_code[self.current_index].isalpha())):
-            
+
             c = self.source_code[self.current_index]
             if c == '.':
                 dot_count += 1
@@ -184,7 +181,6 @@ class LexicalAnalysis:
             elif c.isalpha():
                 number += c
                 self.current_index += 1
-
                 raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
             number += c
             self.current_index += 1
@@ -199,11 +195,13 @@ class LexicalAnalysis:
             raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
 
         if (self.current_index < len(self.source_code) and
-            not self.source_code[self.current_index].isspace() and
-            self.source_code[self.current_index] not in TokenType.SYMBOLS):
+                not self.source_code[self.current_index].isspace() and
+                self.source_code[self.current_index] not in TokenType.SYMBOLS and
+                self.source_code[self.current_index] not in TokenType.ARITHMETIC_OPERATORS):
             while (self.current_index < len(self.source_code) and
                 not self.source_code[self.current_index].isspace() and
-                self.source_code[self.current_index] not in TokenType.SYMBOLS):
+                self.source_code[self.current_index] not in TokenType.SYMBOLS and
+                self.source_code[self.current_index] not in TokenType.ARITHMETIC_OPERATORS):
                 number += self.source_code[self.current_index]
                 self.current_index += 1
             raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
@@ -212,7 +210,6 @@ class LexicalAnalysis:
             self._add_token("FLOAT", number)
         else:
             self._add_token("DECIMAL", number)
-        return
 
     def _handle_identifier_or_reserved_word(self):
         start_index = self.current_index
