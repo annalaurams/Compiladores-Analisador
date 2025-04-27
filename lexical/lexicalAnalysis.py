@@ -19,49 +19,55 @@ class LexicalAnalysis:
         self.current_index = 0  
 
     def analyze(self):
-        #Leitura caracter por caracter
         while self.current_index < len(self.source_code):
             char = self.source_code[self.current_index]
 
-            if self.source_code[self.current_index:self.current_index + 2] == '\\\\' or char == '{':
-                self._handle_comment()
-                continue
-
-            # Ignorar espaços em branco 
             if char.isspace():
                 self._handle_whitespace(char)
                 self.current_index += 1
                 continue
 
-            # Identificar identificadores ou palavras reservadas
             if char.isalpha():
                 self._handle_identifier_or_reserved_word()
                 continue
     
-            # Identificar operadores (como ':=', '+', '-', etc.)
-            if self._is_operator_start(char):
-                self._handle_operator()
+            ## Identificar quando é somente : ou quando é := (atribuição)
+            if char == ':':
+                if self.current_index + 1 < len(self.source_code) and self.source_code[self.current_index + 1] == '=':
+                    self._add_token(TokenType.LOGICAL_OPERATORS[':='], ':=')
+                    self.current_index += 2 
+                else:
+                    self._add_token(TokenType.SYMBOLS[':'], ':')
+                    self.current_index += 1 
                 continue
 
-            # Identificar símbolos únicos (como ';', ',', etc.)
             if char in TokenType.SYMBOLS:
                 self._add_token(TokenType.SYMBOLS[char], char)
                 self.current_index += 1
                 continue
 
-            # Identificar números
+            ## Identificar quando é somente /(operacao de divisao) ou quando é //(comentario)
+            if char == '/':
+                if self.source_code[self.current_index:self.current_index + 2] == '//':
+                    self._handle_comment()
+                    continue
+                else:
+                    self._add_token(TokenType.ARITHMETIC_OPERATORS['/'], '/')
+                    self.current_index += 1
+                    continue
+
+            if self._is_operator_start(char):
+                self._handle_operator()
+                continue
+
             if char.isdigit():
                 self._handle_number()
                 continue
 
-
-            # Identificar strings
-            if char == '"':
+            if char == '"' or char == "'":
                 self._handle_string()
                 continue
 
-            # Símbolo não encontrado
-            #self._add_token("UNKNOWN", char)
             raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
 
         return self.tokens
@@ -70,7 +76,7 @@ class LexicalAnalysis:
         if char == '\n': 
             self.current_line += 1
             self.current_column = 1
-        else:  # Espaços ou tabulação
+        else:
             self.current_column += 1
 
     def _is_operator_start(self, char):
@@ -82,7 +88,6 @@ class LexicalAnalysis:
         operator = ""
         all_operators = list(TokenType.ARITHMETIC_OPERATORS.keys()) + list(TokenType.LOGICAL_OPERATORS.keys())
 
-        # Tenta montar o maior operador possível
         while (self.current_index < len(self.source_code) and
             any(op.startswith(operator + self.source_code[self.current_index]) for op in all_operators)):
             operator += self.source_code[self.current_index]
@@ -106,10 +111,8 @@ class LexicalAnalysis:
                         matched = True
                         break
                 if not matched:
-                    # Apenas processar como UNKNOWN se for realmente um caractere inválido
                     op_char = operator[idx]
                     if op_char.isalpha():
-                        # Se for uma letra, não deve ser tratada como operador
                         break
                     token_type = TokenType.LOGICAL_OPERATORS.get(op_char, "UNKNOWN")
                     self._add_token(token_type, op_char)
@@ -120,8 +123,6 @@ class LexicalAnalysis:
         number = ""
         has_dot = False
 
-        # HEXADECIMAL: começa com 0x ou 0X
-        
         if self.source_code[self.current_index:self.current_index + 2].lower() == "0x":
             number += self.source_code[self.current_index:self.current_index + 2]
             self.current_index += 2
@@ -139,8 +140,7 @@ class LexicalAnalysis:
                 raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
             return
 
-        # OCTAL: começa com '0' seguido de 0-7
-        
+
         if self.source_code[self.current_index] == '0':
             number += '0'
             self.current_index += 1
@@ -150,7 +150,6 @@ class LexicalAnalysis:
                 number += self.source_code[self.current_index]
                 self.current_index += 1
 
-            # se vier 8 ou 9 após dígitos octais, invalida tudo
             if (self.current_index < len(self.source_code) and 
                 self.source_code[self.current_index].isdigit() and 
                 self.source_code[self.current_index] not in '01234567'):
@@ -161,14 +160,12 @@ class LexicalAnalysis:
 
                 raise LexicalError("INVALID TOKEN", self.current_line, self.current_column )
 
-            # em '0' isolado é decimal; em '0' + [0-7]+ é OCTAL
             if len(number) > 1:
                 self._add_token("OCTAL", number)
             else:
                 self._add_token("DECIMAL", number)
             return
 
-        # FLOAT ou DECIMAL
         dot_count = 0
         while (self.current_index < len(self.source_code) and 
             (self.source_code[self.current_index].isdigit() or 
@@ -192,11 +189,9 @@ class LexicalAnalysis:
             number += c
             self.current_index += 1
 
-        # Se terminou com '.', completa para "x.0"
         if has_dot and number.endswith('.'):
             number += '0'
 
-        # Para FLOAT: checa vírgula, parênteses ou ponto extra como erro
         if has_dot and self.current_index < len(self.source_code) and \
         self.source_code[self.current_index] in '.':
             number += self.source_code[self.current_index]
@@ -213,7 +208,6 @@ class LexicalAnalysis:
                 self.current_index += 1
             raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
 
-        # FLOAT ou DECIMAL
         if has_dot:
             self._add_token("FLOAT", number)
         else:
@@ -224,17 +218,13 @@ class LexicalAnalysis:
         start_index = self.current_index
         identifier = ""
        
-
-        # Identificadores ou palavras reservadas
         while self.current_index < len(self.source_code) and self.source_code[self.current_index].isalnum():
             identifier += self.source_code[self.current_index]
             self.current_index += 1
 
         if identifier in TokenType.RESERVED_WORDS:
-            print(f"Identificador: {self.identifier}")  
             self._add_token(TokenType.RESERVED_WORDS[identifier], identifier)
         else:
-            print(f"Identificador A: {identifier}")
             self._add_token("IDENTIFIER", identifier)
 
     def _add_token(self, token_type, value):
@@ -244,55 +234,50 @@ class LexicalAnalysis:
         self.current_column += len(value)
 
     def _handle_comment(self):
-        # Comentario uma linha: começa com '\\' termina no  '\n'
-        if self.source_code[self.current_index:self.current_index + 2] == '\\\\':
-            self.current_index += 2  # Pula os dois caracteres '\\'
-            self.current_column += 2 
+        if self.source_code[self.current_index:self.current_index + 2] == '//':
+            self.current_index += 2  
+            self.current_column += 2
             while self.current_index < len(self.source_code) and self.source_code[self.current_index] != '\n':
-                self.current_index += 1  # Avança para o próximo caractere no comentário
-                self.current_column += 1 
+                self.current_index += 1  
+                self.current_column += 1
             if self.current_index < len(self.source_code) and self.source_code[self.current_index] == '\n':
-                self.current_index += 1  # Pula o caractere de nova linha
-                self.current_line += 1 
+                self.current_index += 1 
+                self.current_line += 1
                 self.current_column = 1
             return
 
-        # Comentario multiplas linhas: começa com '{' termina com '}'
         if self.source_code[self.current_index] == '{':
-            self.current_index += 1  # Pula o caractere '{'
-            self.current_column += 1 
+            self.current_index += 1  
+            self.current_column += 1
             while self.current_index < len(self.source_code):
                 if self.source_code[self.current_index] == '}':
-                    self.current_index += 1  # Pula o caractere '}'
+                    self.current_index += 1  
                     self.current_column += 1
                     return
                 elif self.source_code[self.current_index] == '\n':
-                    self.current_index += 1  # Pula o caractere de nova linha
-                    self.current_line += 1  
-                    self.current_column = 1 
+                    self.current_index += 1  
+                    self.current_line += 1
+                    self.current_column = 1
                 else:
-                    self.current_index += 1  # Avança para o próximo caractere
-                    self.current_column += 1 
-            # Se '}' não for encontrado
-            raise ValueError("Unterminated multi-line comment")
+                    self.current_index += 1  
+                    self.current_column += 1
+            raise ValueError("Unterminated multi-line comment", self.current_line, self.current_column)
         
     def _handle_string(self):   
         string_value = ""
-        self.current_index += 1  # Pula o caractere inicial de aspas
+        opening_quote = self.source_code[self.current_index]  
+        self.current_index += 1 
 
-        while self.current_index < len(self.source_code) and self.source_code[self.current_index] != '"':
+        while self.current_index < len(self.source_code) and self.source_code[self.current_index] != opening_quote:
             if self.source_code[self.current_index] == '\n':
-                raise ValueError("Unclosed string literal")
+                raise ValueError("Unclosed string literal", self.current_line, self.current_column)
             string_value += self.source_code[self.current_index]
             self.current_index += 1
-            
 
-        # Fecha a string se encontrar aspas finais
-        if self.current_index < len(self.source_code) and self.source_code[self.current_index] == '"':
+        if self.current_index < len(self.source_code) and self.source_code[self.current_index] == opening_quote:
             self.current_index += 1 
             self.current_column += 1
             self._add_token("STRING", string_value)
             self.current_column += 1
-            
         else:
-            raise ValueError("Unclosed string literal")
+            raise ValueError("Unclosed string literal", self.current_line, self.current_column)
