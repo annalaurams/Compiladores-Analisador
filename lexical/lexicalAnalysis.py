@@ -27,8 +27,16 @@ class LexicalAnalysis:
                 self.current_index += 1
                 continue
 
-            if char.isalpha():
+            if char.isdigit() or (char == '.' and self.current_index + 1 < len(self.source_code) and self.source_code[self.current_index + 1].isdigit()):
+                self._handle_number()
+                continue
+
+            if char.isalpha() or char == '_':
                 self._handle_identifier_or_reserved_word()
+                continue
+
+            if char == '{':
+                self._handle_comment()
                 continue
     
             ## Identificar quando é somente : ou quando é := (atribuição)
@@ -40,6 +48,7 @@ class LexicalAnalysis:
                     self._add_token(TokenType.SYMBOLS[':'], ':')
                     self.current_index += 1 
                 continue
+    
 
             if char in TokenType.SYMBOLS:
                 self._add_token(TokenType.SYMBOLS[char], char)
@@ -58,10 +67,6 @@ class LexicalAnalysis:
 
             if self._is_operator_start(char):
                 self._handle_operator()
-                continue
-
-            if char.isdigit():
-                self._handle_number()
                 continue
 
             if char == '"' or char == "'":
@@ -116,109 +121,112 @@ class LexicalAnalysis:
                         break
     
     def _handle_number(self):
-        start_index = self.current_index
         number = ""
         has_dot = False
-
-        if self.source_code[self.current_index:self.current_index + 2].lower() == "0x":
-            number += self.source_code[self.current_index:self.current_index + 2]
-            self.current_index += 2
-
-            while (self.current_index < len(self.source_code) and 
-                self.source_code[self.current_index].isalnum()):
-                number += self.source_code[self.current_index]
-                self.current_index += 1
-
-            digits = number[2:]
-            if digits and all(c in "0123456789abcdefABCDEF" for c in digits):
-                self._add_token("HEXADECIMAL", number)
-            else:
-
-                raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
-            return
-
-
-        if self.source_code[self.current_index] == '0':
-            number += '0'
-            self.current_index += 1
-
-            while (self.current_index < len(self.source_code) and 
-                self.source_code[self.current_index] in '01234567'):
-                number += self.source_code[self.current_index]
-                self.current_index += 1
-
-            if (self.current_index < len(self.source_code) and 
-                self.source_code[self.current_index].isdigit() and 
-                self.source_code[self.current_index] not in '01234567'):
-                while (self.current_index < len(self.source_code) and 
-                    self.source_code[self.current_index].isdigit()):
-                    number += self.source_code[self.current_index]
-                    self.current_index += 1
-
-                raise LexicalError("INVALID TOKEN", self.current_line, self.current_column )
-
-            if len(number) > 1:
-                self._add_token("OCTAL", number)
-            else:
-                self._add_token("DECIMAL", number)
-            return
-
         dot_count = 0
-        while (self.current_index < len(self.source_code) and 
-            (self.source_code[self.current_index].isdigit() or 
-            self.source_code[self.current_index] == '.' or 
-            self.source_code[self.current_index].isalpha())):
 
+
+        while self.current_index < len(self.source_code) and \
+            self.source_code[self.current_index] not in [';', '\n', ' ',',',':','(',')'] and \
+            not self._is_operator_start(self.source_code[self.current_index]):
             c = self.source_code[self.current_index]
-            if c == '.':
-                dot_count += 1
-                if dot_count > 1:
-                    number += c
-                    self.current_index += 1
-    
-                    raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
-                has_dot = True
-            elif c.isalpha():
+
+            self.current_column += 1
+
+            if len(number) == 0 and c == '0':
                 number += c
                 self.current_index += 1
-                raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
-            number += c
-            self.current_index += 1
 
-        if has_dot and number.endswith('.'):
-            number += '0'
+                # Hexadecimal (0x)
+                if self.current_index < len(self.source_code) and self.source_code[self.current_index].lower() == 'x':
+                    number += self.source_code[self.current_index]
+                    self.current_index += 1
+                    self.current_column += 1
 
-        if has_dot and self.current_index < len(self.source_code) and \
-        self.source_code[self.current_index] in '.':
-            number += self.source_code[self.current_index]
-            self.current_index += 1
-            raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
+                    while self.current_index < len(self.source_code) and \
+                        self.source_code[self.current_index] not in [';', '\n'] and \
+                        self.source_code[self.current_index] not in TokenType.SYMBOLS.keys() and \
+                        not self._is_operator_start(self.source_code[self.current_index]):
+                        hex_char = self.source_code[self.current_index]
+                        if hex_char.upper() not in "0123456789ABCDEF":
+                            raise LexicalError("INVALID HEXADECIMAL TOKEN", self.current_line, self.current_column)
+                        number += hex_char
+                        self.current_index += 1
+                        self.current_column += 1
 
-        if (self.current_index < len(self.source_code) and
-                not self.source_code[self.current_index].isspace() and
-                self.source_code[self.current_index] not in TokenType.SYMBOLS and
-                self.source_code[self.current_index] not in TokenType.ARITHMETIC_OPERATORS):
-            while (self.current_index < len(self.source_code) and
-                not self.source_code[self.current_index].isspace() and
-                self.source_code[self.current_index] not in TokenType.SYMBOLS and
-                self.source_code[self.current_index] not in TokenType.ARITHMETIC_OPERATORS):
-                number += self.source_code[self.current_index]
+                    self._add_token("HEXADECIMAL", number)
+                    return
+
+                # Float (0 seguido de um ponto)
+                if self.current_index < len(self.source_code) and self.source_code[self.current_index] == '.':
+                    has_dot = True
+                    dot_count += 1
+                    number += '.'
+                    self.current_index += 1
+                    continue
+
+                # Octal (0 seguido de números de 0 a 7)
+                while self.current_index < len(self.source_code) and self.source_code[self.current_index] in '01234567':
+                    number += self.source_code[self.current_index]
+                    self.current_index += 1
+                    self.current_column += 1
+
+                # Verifica se há caracteres inválidos no número octal
+                if self.current_index < len(self.source_code):
+                    invalid_char = self.source_code[self.current_index]
+                    if invalid_char == '.' or invalid_char.isdigit() or invalid_char.isalpha():
+                        raise LexicalError("INVALID OCTAL TOKEN: OCTAL NUMBERS CANNOT CONTAIN DOTS, INVALID DIGITS, OR LETTERS", self.current_line, self.current_column)
+                self._add_token("OCTAL", number)
+                return
+
+            # Verifica se o primeiro caractere é um ponto (.)
+            elif len(number) == 0 and c == '.':
+                number = '0.'  # Adiciona 0 à esquerda
+                has_dot = True
+                dot_count += 1
                 self.current_index += 1
-            raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
 
+            # Verifica se é um dígito ou ponto
+            elif c.isdigit() or c == '.':
+                if c == '.':
+                    dot_count += 1
+                    if dot_count > 1:
+                        raise LexicalError("INVALID FLOAT TOKEN: MULTIPLE DOTS", self.current_line, self.current_column)
+                    has_dot = True
+                number += c
+                self.current_index += 1
+
+            # Qualquer outro caractere é inválido
+            else:
+                raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
+
+        # Após a leitura, verifica o tipo do número
         if has_dot:
+            if number.endswith('.'):
+                number += '0'  # Adiciona 0 à direita
             self._add_token("FLOAT", number)
         else:
             self._add_token("DECIMAL", number)
 
+        # Se encontrar uma quebra de linha, atualiza a linha e reseta a coluna
+        if self.current_index < len(self.source_code) and self.source_code[self.current_index] == '\n':
+            self.current_line += 1
+            self.current_column = 1
+            self.current_index += 1
+
     def _handle_identifier_or_reserved_word(self):
         start_index = self.current_index
         identifier = ""
-       
-        while self.current_index < len(self.source_code) and self.source_code[self.current_index].isalnum():
+
+        if self.current_index < len(self.source_code) and (self.source_code[self.current_index].isalpha() or self.source_code[self.current_index] == '_'):
             identifier += self.source_code[self.current_index]
             self.current_index += 1
 
+        while self.current_index < len(self.source_code) and (self.source_code[self.current_index].isalnum() or self.source_code[self.current_index] == '_'):
+            identifier += self.source_code[self.current_index]
+            self.current_index += 1
+
+        # Verifica se o identificador é uma palavra reservada
         if identifier in TokenType.RESERVED_WORDS:
             self._add_token(TokenType.RESERVED_WORDS[identifier], identifier)
         else:
