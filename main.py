@@ -15,7 +15,6 @@ def processar_arquivo(caminho_arquivo):
     lexer = LexicalAnalysis(source_code)
     tokens = lexer.analyze()
 
-    # Exibir lista de tokens
     for token in tokens:
         print(token)
 

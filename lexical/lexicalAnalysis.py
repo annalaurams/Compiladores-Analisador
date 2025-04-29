@@ -25,55 +25,46 @@ class LexicalAnalysis:
             if char.isspace():
                 self._handle_whitespace(char)
                 self.current_index += 1
-                continue
 
-            if char.isdigit() or (char == '.' and self.current_index + 1 < len(self.source_code) and self.source_code[self.current_index + 1].isdigit()):
+            elif char.isdigit() or (char == '.' and self.current_index + 1 < len(self.source_code) and self.source_code[self.current_index + 1].isdigit()):
                 self._handle_number()
-                continue
 
-            if char.isalpha() or char == '_':
+            elif char.isalpha() or char == '_':
                 self._handle_identifier_or_reserved_word()
-                continue
 
-            if char == '{':
+            elif char == '{':
                 self._handle_comment()
-                continue
     
-            ## Identificar quando é somente : ou quando é := (atribuição)
-            if char == ':':
+            elif char == ':':
                 if self.current_index + 1 < len(self.source_code) and self.source_code[self.current_index + 1] == '=':
                     self._add_token(TokenType.LOGICAL_OPERATORS[':='], ':=')
                     self.current_index += 2 
                 else:
                     self._add_token(TokenType.SYMBOLS[':'], ':')
-                    self.current_index += 1 
-                continue
-    
+                    self.current_index += 1   
 
-            if char in TokenType.SYMBOLS:
+            elif char in TokenType.SYMBOLS:
                 self._add_token(TokenType.SYMBOLS[char], char)
                 self.current_index += 1
-                continue
 
-            ## Identificar quando é somente /(operacao de divisao) ou quando é //(comentario)
-            if char == '/':
+            ## Identificar quando é somente / ou quando é //
+            elif char == '/':
                 if self.source_code[self.current_index:self.current_index + 2] == '//':
                     self._handle_comment()
-                    continue
                 else:
                     self._add_token(TokenType.ARITHMETIC_OPERATORS['/'], '/')
                     self.current_index += 1
-                    continue
-
-            if self._is_operator_start(char):
+                  
+            elif self._is_operator_start(char):
                 self._handle_operator()
                 continue
 
-            if char == '"' or char == "'":
+            elif char == '"' or char == "'":
                 self._handle_string()
                 continue
 
-            raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
+            else:
+                raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
 
         return self.tokens
 
@@ -85,20 +76,18 @@ class LexicalAnalysis:
             self.current_column += 1
 
     def _is_operator_start(self, char):
-
-        all_operators = list(TokenType.ARITHMETIC_OPERATORS.keys()) + list(TokenType.LOGICAL_OPERATORS.keys())
-        return any(op.startswith(char) for op in all_operators)
+        return any(op.startswith(char) for op in TokenType.ARITHMETIC_OPERATORS) or any(op.startswith(char) for op in TokenType.LOGICAL_OPERATORS) 
 
     def _handle_operator(self):
         operator = ""
-        all_operators = list(TokenType.ARITHMETIC_OPERATORS.keys()) + list(TokenType.LOGICAL_OPERATORS.keys())
 
         while (self.current_index < len(self.source_code) and
-            any(op.startswith(operator + self.source_code[self.current_index]) for op in all_operators)):
+            (any(op.startswith(operator + self.source_code[self.current_index]) for op in TokenType.LOGICAL_OPERATORS)) or
+            any(op.startswith(operator + self.source_code[self.current_index]) for op in TokenType.ARITHMETIC_OPERATORS)):
             operator += self.source_code[self.current_index]
             self.current_index += 1
-
-        if operator in all_operators:
+        
+        if operator in TokenType.ARITHMETIC_OPERATORS or operator in TokenType.LOGICAL_OPERATORS:
             token_type = (TokenType.ARITHMETIC_OPERATORS.get(operator) or
                         TokenType.LOGICAL_OPERATORS.get(operator))
             self._add_token(token_type, operator)
@@ -108,7 +97,7 @@ class LexicalAnalysis:
                 matched = False
                 for size in range(3, 0, -1):
                     part = operator[idx:idx+size]
-                    if part in all_operators:
+                    if part in TokenType.ARITHMETIC_OPERATORS or operator in TokenType.LOGICAL_OPERATORS:
                         token_type = (TokenType.ARITHMETIC_OPERATORS.get(part) or
                                     TokenType.LOGICAL_OPERATORS.get(part))
                         self._add_token(token_type, part)
@@ -125,9 +114,8 @@ class LexicalAnalysis:
         has_dot = False
         dot_count = 0
 
-
         while self.current_index < len(self.source_code) and \
-            self.source_code[self.current_index] not in [';', '\n', ' ',',',':','(',')'] and \
+            self.source_code[self.current_index] not in {';', '\n', ' ',',',':','(',')'} and \
             not self._is_operator_start(self.source_code[self.current_index]):
             c = self.source_code[self.current_index]
 
@@ -137,7 +125,7 @@ class LexicalAnalysis:
                 number += c
                 self.current_index += 1
 
-                # Hexadecimal (0x)
+                # Hexadecimal 
                 if self.current_index < len(self.source_code) and self.source_code[self.current_index].lower() == 'x':
                     number += self.source_code[self.current_index]
                     self.current_index += 1
@@ -145,10 +133,10 @@ class LexicalAnalysis:
 
                     while self.current_index < len(self.source_code) and \
                         self.source_code[self.current_index] not in [';', '\n'] and \
-                        self.source_code[self.current_index] not in TokenType.SYMBOLS.keys() and \
+                        self.source_code[self.current_index] not in TokenType.SYMBOLS and \
                         not self._is_operator_start(self.source_code[self.current_index]):
                         hex_char = self.source_code[self.current_index]
-                        if hex_char.upper() not in "0123456789ABCDEF":
+                        if hex_char.upper() not in {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'}:
                             raise LexicalError("INVALID HEXADECIMAL TOKEN", self.current_line, self.current_column)
                         number += hex_char
                         self.current_index += 1
@@ -157,7 +145,7 @@ class LexicalAnalysis:
                     self._add_token("HEXADECIMAL", number)
                     return
 
-                # Float (0 seguido de um ponto)
+                # Float
                 if self.current_index < len(self.source_code) and self.source_code[self.current_index] == '.':
                     has_dot = True
                     dot_count += 1
@@ -165,28 +153,27 @@ class LexicalAnalysis:
                     self.current_index += 1
                     continue
 
-                # Octal (0 seguido de números de 0 a 7)
-                while self.current_index < len(self.source_code) and self.source_code[self.current_index] in '01234567':
+                octal_set = {'0', '1', '2', '3', '4', '5', '6', '7'}
+                # Octal
+                while self.current_index < len(self.source_code) and self.source_code[self.current_index] in octal_set:
                     number += self.source_code[self.current_index]
                     self.current_index += 1
                     self.current_column += 1
 
-                # Verifica se há caracteres inválidos no número octal
                 if self.current_index < len(self.source_code):
                     invalid_char = self.source_code[self.current_index]
-                    if invalid_char == '.' or invalid_char.isdigit() or invalid_char.isalpha():
+                    if invalid_char not in octal_set:
                         raise LexicalError("INVALID OCTAL TOKEN: OCTAL NUMBERS CANNOT CONTAIN DOTS, INVALID DIGITS, OR LETTERS", self.current_line, self.current_column)
                 self._add_token("OCTAL", number)
                 return
 
-            # Verifica se o primeiro caractere é um ponto (.)
+            # Verifica se o primeiro caractere é um ponto
             elif len(number) == 0 and c == '.':
-                number = '0.'  # Adiciona 0 à esquerda
+                number = '0.' 
                 has_dot = True
                 dot_count += 1
                 self.current_index += 1
 
-            # Verifica se é um dígito ou ponto
             elif c.isdigit() or c == '.':
                 if c == '.':
                     dot_count += 1
@@ -196,26 +183,25 @@ class LexicalAnalysis:
                 number += c
                 self.current_index += 1
 
-            # Qualquer outro caractere é inválido
             else:
                 raise LexicalError("INVALID TOKEN", self.current_line, self.current_column)
 
-        # Após a leitura, verifica o tipo do número
+        if self.current_index < len(self.source_code) and self.source_code[self.current_index].isalpha():
+            raise LexicalError("INVALID NUMBER TOKEN: NUMBERS CANNOT CONTAIN LETTERS", self.current_line, self.current_column)
+
         if has_dot:
             if number.endswith('.'):
-                number += '0'  # Adiciona 0 à direita
+                number += '0' 
             self._add_token("FLOAT", number)
         else:
             self._add_token("DECIMAL", number)
 
-        # Se encontrar uma quebra de linha, atualiza a linha e reseta a coluna
         if self.current_index < len(self.source_code) and self.source_code[self.current_index] == '\n':
             self.current_line += 1
             self.current_column = 1
             self.current_index += 1
 
     def _handle_identifier_or_reserved_word(self):
-        start_index = self.current_index
         identifier = ""
 
         if self.current_index < len(self.source_code) and (self.source_code[self.current_index].isalpha() or self.source_code[self.current_index] == '_'):
@@ -226,7 +212,6 @@ class LexicalAnalysis:
             identifier += self.source_code[self.current_index]
             self.current_index += 1
 
-        # Verifica se o identificador é uma palavra reservada
         if identifier in TokenType.RESERVED_WORDS:
             self._add_token(TokenType.RESERVED_WORDS[identifier], identifier)
         else:
@@ -282,7 +267,9 @@ class LexicalAnalysis:
         if self.current_index < len(self.source_code) and self.source_code[self.current_index] == opening_quote:
             self.current_index += 1 
             self.current_column += 1
-            self._add_token("STRING", string_value)
+            interpreted_string = string_value.encode('utf-8').decode('unicode_escape')
+            print(f"String value: {interpreted_string}")
+            self._add_token("STRING", interpreted_string)
             self.current_column += 1
         else:
             raise ValueError("Unclosed string literal", self.current_line, self.current_column)
