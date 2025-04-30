@@ -114,8 +114,10 @@ class LexicalAnalysis:
         has_dot = False
         dot_count = 0
 
+        delimiters = {';', '\n', ' ', ',', ':', '(', ')'}
+
         while self.current_index < len(self.source_code) and \
-            self.source_code[self.current_index] not in {';', '\n', ' ',',',':','(',')'} and \
+            self.source_code[self.current_index] not in delimiters and \
             not self._is_operator_start(self.source_code[self.current_index]):
             c = self.source_code[self.current_index]
 
@@ -131,16 +133,18 @@ class LexicalAnalysis:
                     self.current_index += 1
                     self.current_column += 1
 
+                    hexadecimal_set = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
                     while self.current_index < len(self.source_code) and \
-                        self.source_code[self.current_index] not in [';', '\n'] and \
-                        self.source_code[self.current_index] not in TokenType.SYMBOLS and \
-                        not self._is_operator_start(self.source_code[self.current_index]):
+                            self.source_code[self.current_index].upper() in hexadecimal_set:
                         hex_char = self.source_code[self.current_index]
-                        if hex_char.upper() not in {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'}:
-                            raise LexicalError("INVALID HEXADECIMAL TOKEN", self.current_line, self.current_column)
                         number += hex_char
                         self.current_index += 1
                         self.current_column += 1
+
+                    if self.source_code[self.current_index].upper() not in hexadecimal_set and \
+                            self.source_code[self.current_index] not in delimiters and \
+                            self.source_code[self.current_index] not in TokenType.SYMBOLS:
+                        raise LexicalError("INVALID HEXADECIMAL TOKEN", self.current_line, self.current_column)
 
                     self._add_token("HEXADECIMAL", number)
                     return
@@ -153,16 +157,16 @@ class LexicalAnalysis:
                     self.current_index += 1
                     continue
 
-                octal_set = {'0', '1', '2', '3', '4', '5', '6', '7'}
                 # Octal
-                while self.current_index < len(self.source_code) and self.source_code[self.current_index] in octal_set:
-                    number += self.source_code[self.current_index]
-                    self.current_index += 1
-                    self.current_column += 1
-
-                if self.current_index < len(self.source_code):
-                    invalid_char = self.source_code[self.current_index]
-                    if invalid_char not in octal_set:
+                while self.current_index < len(self.source_code)and \
+                        self.source_code[self.current_index] not in delimiters and \
+                        self.source_code[self.current_index] not in TokenType.SYMBOLS and \
+                        not self._is_operator_start(self.source_code[self.current_index]):
+                    if self.source_code[self.current_index] in {'0', '1', '2', '3', '4', '5', '6', '7'}:
+                        number += self.source_code[self.current_index]
+                        self.current_index += 1
+                        self.current_column += 1
+                    else:
                         raise LexicalError("INVALID OCTAL TOKEN: OCTAL NUMBERS CANNOT CONTAIN DOTS, INVALID DIGITS, OR LETTERS", self.current_line, self.current_column)
                 self._add_token("OCTAL", number)
                 return
@@ -268,7 +272,6 @@ class LexicalAnalysis:
             self.current_index += 1 
             self.current_column += 1
             interpreted_string = string_value.encode('utf-8').decode('unicode_escape')
-            print(f"String value: {interpreted_string}")
             self._add_token("STRING", interpreted_string)
             self.current_column += 1
         else:
