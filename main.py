@@ -1,6 +1,7 @@
 import sys
 import os
 from lexical.lexicalAnalysis import LexicalAnalysis
+from lexical.SyntacticAnalysis import SyntacticAnalysis
 
 def processar_arquivo(caminho_arquivo):
     if not os.path.exists(caminho_arquivo):
@@ -15,12 +16,20 @@ def processar_arquivo(caminho_arquivo):
     lexer = LexicalAnalysis(source_code)
     tokens = lexer.analyze()
 
+    print("\nTokens gerados:")
     for token in tokens:
         print(token)
 
+    try:
+        parser = SyntacticAnalysis(tokens)
+        parser.parse()
+        print("\n Análise sintática concluída!\n")
+    except SyntaxError as e:
+        print(f"\n Erro de análise sintática: {e}\n")
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Caminho: python main.py <caminho-do-arquivo>")
+        print("Uso: python main.py <caminho-do-arquivo>")
     else:
         caminho_arquivo = sys.argv[1]
         processar_arquivo(caminho_arquivo)
