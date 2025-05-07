@@ -1,7 +1,7 @@
 program exemplo ;
 
 var
-  x, y: integer;
+  x integer
   nome: string;
 
 begin

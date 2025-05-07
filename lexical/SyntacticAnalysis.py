@@ -1,23 +1,31 @@
+from lexical.lexeme import Lexeme  
 class SyntaxError(Exception):
-    def __init__(self, message, token,line, column):
+    def __init__(self, message, token):
         self.token = token
-        self.line = line
-        self.column = column
-        super().__init__(f"{message}  at line {line}, column {column}")
-
+        self.line = token.line
+        self.column = token.column
+        super().__init__(f"{message} at line {self.line}, column {self.column}")
 
 class SyntacticAnalysis:
     def __init__(self, tokens):
         self.tokens = tokens
         self.current = 0
-        self.current_line = 1
-        self.current_column = 1
-        self.current_index = 0  
 
     def parse(self):
         print("\n_______________________________________________________________________________________________________________\n")
         print("\nParsing program\n")
         self.program()
+
+    def expect(self, expected_type):
+        if not self.match(expected_type):
+            current_token = self.tokens[self.current] if self.current < len(self.tokens) else None
+            if current_token:
+                raise SyntaxError(
+                    f"Expected {expected_type}, but got {current_token.token_type} ('{current_token.value}')",
+                    current_token
+                )
+            else:
+                raise SyntaxError(f"Unexpected end of input, expected {expected_type}", Lexeme(expected_type, "", -1, -1))
 
     def match(self, expected_type):
         if self.current < len(self.tokens) and self.tokens[self.current].token_type == expected_type:
@@ -25,11 +33,6 @@ class SyntacticAnalysis:
             self.current += 1
             return True
         return False
-
-    def expect(self, expected_type):
-        if not self.match(expected_type):
-            # raise SyntaxError(f"\nExpected {expected_type}, got {self.tokens[self.current].token_type}", self.tokens[self.current], "\n")
-            raise SyntaxError(f"{expected_type}  at line {self.current_line}, column {self.current_column}", "\n", {self.current_line}, {self.current_column})
 
     def program(self):
         print("Entering <program>")
