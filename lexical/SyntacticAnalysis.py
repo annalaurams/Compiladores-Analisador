@@ -1,12 +1,18 @@
 class SyntaxError(Exception):
-    def __init__(self, message, token):
-        super().__init__(f"{message} at line {token.line}, column {token.column}")
+    def __init__(self, message, token,line, column):
         self.token = token
+        self.line = line
+        self.column = column
+        super().__init__(f"{message}  at line {line}, column {column}")
+
 
 class SyntacticAnalysis:
     def __init__(self, tokens):
         self.tokens = tokens
         self.current = 0
+        self.current_line = 1
+        self.current_column = 1
+        self.current_index = 0  
 
     def parse(self):
         print("\n_______________________________________________________________________________________________________________\n")
@@ -22,7 +28,8 @@ class SyntacticAnalysis:
 
     def expect(self, expected_type):
         if not self.match(expected_type):
-            raise SyntaxError(f"\nExpected {expected_type}, got {self.tokens[self.current].token_type}", self.tokens[self.current], "\n")
+            # raise SyntaxError(f"\nExpected {expected_type}, got {self.tokens[self.current].token_type}", self.tokens[self.current], "\n")
+            raise SyntaxError(f"{expected_type}  at line {self.current_line}, column {self.current_column}", "\n", {self.current_line}, {self.current_column})
 
     def program(self):
         print("Entering <program>")
