@@ -1,4 +1,4 @@
-from lexical.lexeme import Lexeme  
+from analyzer.lexeme import Lexeme  
 class SyntaxError(Exception):
     def __init__(self, message, token):
         self.token = token

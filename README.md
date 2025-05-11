@@ -42,7 +42,7 @@ Erro sintático na linha 10, coluna 5: esperado 'end' antes de 'else'
 ## 🗂 Estrutura do Projeto
 
 - `main.py`: Ponto de entrada do projeto (executa analisador léxico e sintático).
-- `analyser/`: Código do analisador léxico e sintático.
+- `analyzer/`: Código do analisador léxico e sintático.
 - `lista1/`: Arquivos de teste `.pmm`. 
 
 ## ⚙️ Como Executar
