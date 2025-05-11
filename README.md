@@ -1,4 +1,4 @@
-<h1 align="center" font-size="200em"><b>📘 Analisador Léxico - Compiladores</b></h1>
+<h1 align="center" font-size="200em"><b>📘 Compilador Pascal--: Analisador Léxico e Sintático</b></h1>
 
 <div align = "center" >
 
@@ -7,38 +7,43 @@
 </div>
 
 ## ✒️ Descrição
-Este projeto é a implementação do **Trabalho Prático 01** da disciplina de Compiladores. Foi desenvolvido um **analisador léxico** para uma linguagem chamada **Pascal--**, uma versão simplificada da linguagem Pascal.
+Este projeto é a implementação das etapas **1 e 2 do Trabalho Prático** da disciplina de Compiladores. Foi desenvolvido as etapas de **análise léxica** e **análise sintática** para a linguagem fictícia Pascal--., uma versão simplificada da linguagem Pascal.
 
 ## 🧠 Objetivo
 
-Criar um programa capaz de **ler arquivos .pmm escritos em Pascal--** e identificar todos os **tokens válidos**, retornando:
+Implementar um compilador parcial para Pascal--, realizando a leitura de um código-fonte `.pmm` e analisando se ele é válido segundo as regras léxicas e sintáticas da linguagem.
 
-- O tipo do token (ex: palavra reservada, operador, número, etc.)
-- O lexema (valor do token no código)
-- Linha e coluna onde foi encontrado
-- Retornado erro em casos de não reconhecimento do token retornando a linha e a coluna do problema.
 
-## 🛠 Estrutura do Projeto
+## 📦 Módulos do Projeto
 
-- `main.py`: Arquivo principal. Executa o analisador léxico.
-- `lexical/`: Pasta com os módulos que contêm a lógica de análise léxica (reconhecimento de tokens, tratamento de erros, etc.).
-- `codigos_pascal/`: Exemplos de arquivos `.pmm` escritos em Pascal-- para teste do analisador.
+### 🔹 Módulo 1 — Analisador Léxico
 
-## 🔍 Tipos de tokens reconhecidos
-Os tokens que são reconhecidos em nosso projeto são:
+Identifica e classifica os **tokens** do código-fonte (palavras-chave, operadores, símbolos, etc.) e informa a **linha e coluna** de cada item.
 
-- **Operadores Aritméticos**: `+`, `-`, `*`, `/`, `mod`, `div`
-- **Operadores Lógicos e Relacionais**: `and`, `or`, `not`, `=`, `<>`, `<`, `<=`, `>`, `>=`, `:=`
-- **Palavras Reservadas**: `program`, `var`, `integer`, `real`, `string`, `begin`, `end`, `if`, `then`, `else`, `for`, `to`, `while`, `do`, `break`, `continue`, `read`, `readln`, `write`, `writeln`
-- **Símbolos**: `;`, `:`, `,`, `.`, `(`, `)`
-- **Strings**: delimitadas por aspas duplas (`"`)
-- **Números**:
-  - Octais: `0[0-7]+`
-  - Decimais: `[1-9][0-9]*`
-  - Hexadecimais: `0x[0-9A-F]+`
-  - Flutuantes: `[0-9]+\.[0-9]*`
-- **Identificadores**: Letras seguidas de letras ou dígitos
-- **Comentários**: `//` ou `{ ... }`
+**Exemplo de saída:**
+```
+Token: KEYWORD, Lexema: program, Linha: 1, Coluna: 1
+Token: IDENTIFIER, Lexema: exemplo, Linha: 1, Coluna: 9
+```
+
+**Erros léxicos** também são detectados e informados com a posição do erro.
+
+---
+
+### 🔸 Módulo 2 — Analisador Sintático
+
+Verifica se os tokens formam uma estrutura sintaticamente válida, com base na **gramática da linguagem Pascal--**.
+
+**Exemplo de erro sintático:**
+```
+Erro sintático na linha 10, coluna 5: esperado 'end' antes de 'else'
+```
+
+## 🗂 Estrutura do Projeto
+
+- `main.py`: Ponto de entrada do projeto (executa analisador léxico e sintático).
+- `analyzer/`: Código do analisador léxico e sintático.
+- `lista1/`: Arquivos de teste `.pmm`. 
 
 ## ⚙️ Como Executar
 
@@ -46,9 +51,10 @@ Os tokens que são reconhecidos em nosso projeto são:
 2. No terminal, execute:
 
 ```bash
-python3 main.py codigos_pascal/<nome_arquivo>.pmm
+python3 main.py codigos_pascal/<arquivo>.pmm
 ```
-3. O analisador vai imprimir os tokens encontrados, junto com seus lexemas, linhas e colunas.
+
+3. O analisador vai imprimir os tokens encontrados e a análise sintárica é feita, em caso de erros é exibido o motivo do erro e a linha e coluna do arquivo `.pmm` em que houve o erro
 4. Para limpar o terminal basta rodar o comando: `clear`
    
 ## ✅ Funcionalidades Implementadas
@@ -57,7 +63,9 @@ python3 main.py codigos_pascal/<nome_arquivo>.pmm
 - Detecção de tokens inválidos com mensagens de erro e posição no código
 - Entrada via linha de comando com nome do arquivo
 - Modularização do código para facilitar manutenção e legibilidade
+- Analisador sintático para verificar a estrutura correta do código Pascal, com detecção de erros de sintaxe com mensagens detalhadas.
 
+<!-- 
 ## 📦 Resultado Esperado
 
 Ao executar o analisador em um código `.pmm`, o retorno será uma lista de tokens válidos encontrados, ou uma mensagem de erro informando onde há um token inválido. Exemplo:
@@ -68,10 +76,11 @@ Token: IDENTIFIER, Lexema: exemplo, Linha: 1, Coluna: 9
 ...  
 Erro: Token inválido "$" na linha 5, coluna 12
 ```
-
+-->
 ## 📌 Conclusão
 
-Esse trabalho nos ajudou a entender melhor o funcionamento da parte de análise léxica em compiladores. Vimos na prática como reconhecer os elementos da linguagem, separar corretamente cada parte do código (como palavras-chave, variáveis, números etc.), lidar com erros e organizar tudo de um jeito claro no código.
+O projeto foi dividido em etapas para facilitar o aprendizado e a organização. Primeiro, implementamos a análise léxica, depois partimos para a análise sintática. Isso nos ajudou a compreender melhor como um compilador identifica e interpreta o código-fonte em etapas bem definidas.
+
 
 ## Contato
 <div>

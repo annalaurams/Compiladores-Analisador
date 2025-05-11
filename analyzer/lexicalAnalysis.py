@@ -1,6 +1,6 @@
-from lexical.lexeme import Lexeme
-from lexical.tokenType import TokenType
-from lexical.symbolTable import SymbolTable
+from analyzer.lexeme import Lexeme
+from analyzer.tokenType import TokenType
+from analyzer.symbolTable import SymbolTable
 
 class LexicalError(Exception):
     def __init__(self, message, line, column):

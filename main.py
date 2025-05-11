@@ -1,7 +1,7 @@
 import sys
 import os
-from lexical.lexicalAnalysis import LexicalAnalysis
-from lexical.SyntacticAnalysis import SyntacticAnalysis
+from analyzer.lexicalAnalysis import LexicalAnalysis
+from analyzer.SyntacticAnalysis import SyntacticAnalysis
 
 def processar_arquivo(caminho_arquivo):
     if not os.path.exists(caminho_arquivo):
