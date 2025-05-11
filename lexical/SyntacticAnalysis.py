@@ -1,7 +1,10 @@
+from lexical.lexeme import Lexeme  
 class SyntaxError(Exception):
     def __init__(self, message, token):
-        super().__init__(f"{message} at line {token.line}, column {token.column}")
         self.token = token
+        self.line = token.line
+        self.column = token.column
+        super().__init__(f"{message} at line {self.line}, column {self.column}")
 
 class SyntacticAnalysis:
     def __init__(self, tokens):
@@ -13,16 +16,23 @@ class SyntacticAnalysis:
         print("\nParsing program\n")
         self.program()
 
+    def expect(self, expected_type):
+        if not self.match(expected_type):
+            current_token = self.tokens[self.current] if self.current < len(self.tokens) else None
+            if current_token:
+                raise SyntaxError(
+                    f"Expected {expected_type}, but got {current_token.token_type} ('{current_token.value}')",
+                    current_token
+                )
+            else:
+                raise SyntaxError(f"Unexpected end of input, expected {expected_type}", Lexeme(expected_type, "", -1, -1))
+
     def match(self, expected_type):
         if self.current < len(self.tokens) and self.tokens[self.current].token_type == expected_type:
             print(f"Matched {expected_type}: {self.tokens[self.current].value}")
             self.current += 1
             return True
         return False
-
-    def expect(self, expected_type):
-        if not self.match(expected_type):
-            raise SyntaxError(f"\nExpected {expected_type}, got {self.tokens[self.current].token_type}", self.tokens[self.current], "\n")
 
     def program(self):
         print("Entering <program>")

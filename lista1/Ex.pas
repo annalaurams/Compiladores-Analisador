@@ -1,4 +1,4 @@
-program exemplo;
+program exemplo ;
 
 var
   x, y: integer;
@@ -7,7 +7,7 @@ var
 begin
   x := 10;
   y := 20;
-  nome := 'ChatGPT';
+  nome := 'grupo4';
 
   if x < y then
     writeln(nome);
