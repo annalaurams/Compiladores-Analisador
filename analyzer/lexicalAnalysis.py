@@ -113,6 +113,7 @@ class LexicalAnalysis:
         number = ""
         has_dot = False
         dot_count = 0
+        columns_incremented = 0
 
         delimiters = {';', '\n', ' ', ',', ':', '(', ')'}
 
@@ -122,6 +123,7 @@ class LexicalAnalysis:
             c = self.source_code[self.current_index]
 
             self.current_column += 1
+            columns_incremented += 1
 
             if len(number) == 0 and c == '0':
                 number += c
@@ -132,6 +134,7 @@ class LexicalAnalysis:
                     number += self.source_code[self.current_index]
                     self.current_index += 1
                     self.current_column += 1
+                    columns_incremented += 1
 
                     hexadecimal_set = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
                     while self.current_index < len(self.source_code) and \
@@ -140,12 +143,13 @@ class LexicalAnalysis:
                         number += hex_char
                         self.current_index += 1
                         self.current_column += 1
+                        columns_incremented += 1
 
                     if self.source_code[self.current_index].upper() not in hexadecimal_set and \
                             self.source_code[self.current_index] not in delimiters and \
                             self.source_code[self.current_index] not in TokenType.SYMBOLS:
                         raise LexicalError("INVALID HEXADECIMAL TOKEN", self.current_line, self.current_column)
-
+                    self.current_column = self.current_column - columns_incremented
                     self._add_token("HEXADECIMAL", number)
                     return
 
@@ -166,8 +170,10 @@ class LexicalAnalysis:
                         number += self.source_code[self.current_index]
                         self.current_index += 1
                         self.current_column += 1
+                        columns_incremented += 1
                     else:
                         raise LexicalError("INVALID OCTAL TOKEN: OCTAL NUMBERS CANNOT CONTAIN DOTS, INVALID DIGITS, OR LETTERS", self.current_line, self.current_column)
+                self.current_column = self.current_column - columns_incremented
                 self._add_token("OCTAL", number)
                 return
 
@@ -193,17 +199,18 @@ class LexicalAnalysis:
         if self.current_index < len(self.source_code) and self.source_code[self.current_index].isalpha():
             raise LexicalError("INVALID NUMBER TOKEN: NUMBERS CANNOT CONTAIN LETTERS", self.current_line, self.current_column)
 
-        if has_dot:
-            if number.endswith('.'):
-                number += '0' 
-            self._add_token("FLOAT", number)
-        else:
-            self._add_token("DECIMAL", number)
-
         if self.current_index < len(self.source_code) and self.source_code[self.current_index] == '\n':
             self.current_line += 1
             self.current_column = 1
             self.current_index += 1
+
+        self.current_column = self.current_column - columns_incremented
+        if has_dot:
+            if number.endswith('.'):
+                number += '0'                
+            self._add_token("FLOAT", number)
+        else:
+            self._add_token("DECIMAL", number)
 
     def _handle_identifier_or_reserved_word(self):
         identifier = ""
