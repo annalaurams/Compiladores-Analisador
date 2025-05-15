@@ -19,6 +19,9 @@ class LexicalAnalysis:
         self.current_index = 0  
 
     def analyze(self):
+        numbers_delimiters = {';', '\n', ' ', ',', ':', '(', ')'}
+        hexadecimal_set = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
+        octal_set = {'0', '1', '2', '3', '4', '5', '6', '7'}
         while self.current_index < len(self.source_code):
             char = self.source_code[self.current_index]
 
@@ -27,7 +30,7 @@ class LexicalAnalysis:
                 self.current_index += 1
 
             elif char.isdigit() or (char == '.' and self.current_index + 1 < len(self.source_code) and self.source_code[self.current_index + 1].isdigit()):
-                self._handle_number()
+                self._handle_number(numbers_delimiters, hexadecimal_set, octal_set)
 
             elif char.isalpha() or char == '_':
                 self._handle_identifier_or_reserved_word()
@@ -109,16 +112,14 @@ class LexicalAnalysis:
                     if op_char.isalpha():
                         break
     
-    def _handle_number(self):
+    def _handle_number(self,number_delimiters,hexadecimal_set,octal_set):
         number = ""
         has_dot = False
         dot_count = 0
         columns_incremented = 0
 
-        delimiters = {';', '\n', ' ', ',', ':', '(', ')'}
-
         while self.current_index < len(self.source_code) and \
-            self.source_code[self.current_index] not in delimiters and \
+            self.source_code[self.current_index] not in number_delimiters and \
             not self._is_operator_start(self.source_code[self.current_index]):
             c = self.source_code[self.current_index]
 
@@ -136,7 +137,6 @@ class LexicalAnalysis:
                     self.current_column += 1
                     columns_incremented += 1
 
-                    hexadecimal_set = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}
                     while self.current_index < len(self.source_code) and \
                             self.source_code[self.current_index].upper() in hexadecimal_set:
                         hex_char = self.source_code[self.current_index]
@@ -146,7 +146,7 @@ class LexicalAnalysis:
                         columns_incremented += 1
 
                     if self.source_code[self.current_index].upper() not in hexadecimal_set and \
-                            self.source_code[self.current_index] not in delimiters and \
+                            self.source_code[self.current_index] not in number_delimiters and \
                             self.source_code[self.current_index] not in TokenType.SYMBOLS:
                         raise LexicalError("INVALID HEXADECIMAL TOKEN", self.current_line, self.current_column)
                     self.current_column = self.current_column - columns_incremented
@@ -163,10 +163,10 @@ class LexicalAnalysis:
 
                 # Octal
                 while self.current_index < len(self.source_code)and \
-                        self.source_code[self.current_index] not in delimiters and \
+                        self.source_code[self.current_index] not in number_delimiters and \
                         self.source_code[self.current_index] not in TokenType.SYMBOLS and \
                         not self._is_operator_start(self.source_code[self.current_index]):
-                    if self.source_code[self.current_index] in {'0', '1', '2', '3', '4', '5', '6', '7'}:
+                    if self.source_code[self.current_index] in octal_set:
                         number += self.source_code[self.current_index]
                         self.current_index += 1
                         self.current_column += 1
