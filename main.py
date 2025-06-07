@@ -2,6 +2,7 @@ import sys
 import os
 from analyzer.lexicalAnalysis import LexicalAnalysis
 from analyzer.SyntacticAnalysis import SyntacticAnalysis
+from analyzer.intermediate_code_generator import IntermediateCodeGenerator
 
 def processar_arquivo(caminho_arquivo):
     if not os.path.exists(caminho_arquivo):
@@ -33,3 +34,10 @@ if __name__ == "__main__":
     else:
         caminho_arquivo = sys.argv[1]
         processar_arquivo(caminho_arquivo)
+        path = sys.argv[1]
+        code = open(path, encoding='latin-1').read()
+        lex = LexicalAnalysis(code)
+        tokens = lex.analyze()
+        gen = IntermediateCodeGenerator()
+        gen.generate_from_tokens(tokens)
+        gen.print_instructions()

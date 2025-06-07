@@ -165,12 +165,29 @@ class SyntacticAnalysis:
         self.stmt()
         print("Exiting <whileStmt>")
 
+    # def ifStmt(self):
+    #     print("Entering <ifStmt>")
+    #     self.expect("IF")
+    #     self.expr()
+    #     self.expect("THEN")
+    #     self.stmt()
+    #     if self.match("ELSE"):
+    #         self.stmt()
+    #     print("Exiting <ifStmt>")
+
     def ifStmt(self):
         print("Entering <ifStmt>")
         self.expect("IF")
-        self.expr()
+
+        # Coletar tokens até encontrar THEN
+        condition_tokens = []
+        while self.current < len(self.tokens) and self.tokens[self.current].token_type != "THEN":
+            condition_tokens.append(self.tokens[self.current])
+            self.current += 1
+
         self.expect("THEN")
         self.stmt()
+
         if self.match("ELSE"):
             self.stmt()
         print("Exiting <ifStmt>")
@@ -203,7 +220,7 @@ class SyntacticAnalysis:
 
     def rel(self):
         self.add()
-        while self.match("EQ") or self.match("NEQ") or self.match("LT") or self.match("LTE") or self.match("GT") or self.match("GTE"):
+        while self.match("EQ") or self.match("NEQ") or self.match("LT") or self.match("LTE") or self.match("GT") or self.match("GTE") or self.match("EQUALS"):
             self.add()
 
     def add(self):
