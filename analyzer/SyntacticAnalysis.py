@@ -12,8 +12,8 @@ class SyntacticAnalysis:
         self.current = 0
 
     def parse(self):
-        print("\n_______________________________________________________________________________________________________________\n")
-        print("\nParsing program\n")
+        #print("\n_______________________________________________________________________________________________________________\n")
+        #print("\nParsing program\n")
         self.program()
 
     def expect(self, expected_type):
@@ -29,13 +29,13 @@ class SyntacticAnalysis:
 
     def match(self, expected_type):
         if self.current < len(self.tokens) and self.tokens[self.current].token_type == expected_type:
-            print(f"Matched {expected_type}: {self.tokens[self.current].value}")
+            #print(f"Matched {expected_type}: {self.tokens[self.current].value}")
             self.current += 1
             return True
         return False
 
     def program(self):
-        print("Entering <program>")
+        #print("Entering <program>")
         self.expect("PROGRAM")
         self.expect("IDENTIFIER")
         self.expect("SEMICOLON")
@@ -44,48 +44,50 @@ class SyntacticAnalysis:
         self.stmtList()
         self.expect("END")
         self.expect("DOT")
-        print("Exiting <program>")
+        if self.current < len(self.tokens):
+            raise SyntaxError("Unexpected tokens after program end", self.tokens[self.current])
+        #print("Exiting <program>")
 
     def declarations(self):
-        print("Entering <declarations>")
+        #print("Entering <declarations>")
         self.expect("VAR")
         self.declaration()
         while self.current < len(self.tokens) and self.tokens[self.current].token_type == "IDENTIFIER":
             self.declaration()
-        print("Exiting <declarations>")
+        #print("Exiting <declarations>")
 
     def declaration(self):
-        print("Entering <declaration>")
+        #print("Entering <declaration>")
         self.listaIdent()
         self.expect("COLON")
         self.type()
         self.expect("SEMICOLON")
-        print("Exiting <declaration>")
+        #print("Exiting <declaration>")
 
     def listaIdent(self):
-        print("Entering <listaIdent>")
+        #print("Entering <listaIdent>")
         self.expect("IDENTIFIER")
         while self.match("COMMA"):
             self.expect("IDENTIFIER")
-        print("Exiting <listaIdent>")
+        #print("Exiting <listaIdent>")
 
     def type(self):
-        print("Entering <type>")
+        #print("Entering <type>")
         if not self.match("INTEGER"):
             if not self.match("REAL"):
                 self.expect("STRING")
-        print("Exiting <type>")
+        #print("Exiting <type>")
 
     def stmtList(self):
-        print("Entering <stmtList>")
+        #print("Entering <stmtList>")
         while self.current < len(self.tokens):
             if self.tokens[self.current].token_type in {"END", "ELSE", "DOT"}:
                 break
             self.stmt()
-        print("Exiting <stmtList>")
+        #print("Exiting <stmtList>")
 
     def stmt(self):
-        print(f"Entering <stmt> with token {self.tokens[self.current].token_type}")
+        #print(f"Entering <stmt> with token {self.tokens[self.current].token_type}")
         token = self.tokens[self.current].token_type
         if token == "FOR":
             self.forStmt()
@@ -110,18 +112,18 @@ class SyntacticAnalysis:
             self.expect("SEMICOLON")
         else:
             raise SyntaxError("Unexpected token in statement", self.tokens[self.current])
-        print("Exiting <stmt>")
+        #print("Exiting <stmt>")
 
     def bloco(self):
-        print("Entering <bloco>")
+        #print("Entering <bloco>")
         self.expect("BEGIN")
         self.stmtList()
         self.expect("END")
         self.expect("SEMICOLON")
-        print("Exiting <bloco>")
+        #print("Exiting <bloco>")
 
     def forStmt(self):
-        print("Entering <forStmt>")
+        #print("Entering <forStmt>")
         self.expect("FOR")
         self.atrib()
         self.expect("TO")
@@ -129,10 +131,10 @@ class SyntacticAnalysis:
             self.expect("DECIMAL")
         self.expect("DO")
         self.stmt()
-        print("Exiting <forStmt>")
+        #print("Exiting <forStmt>")
 
     def ioStmt(self):
-        print("Entering <ioStmt>")
+        #print("Entering <ioStmt>")
         token = self.tokens[self.current].token_type
         self.current += 1 
         self.expect("LPAREN")
@@ -142,14 +144,14 @@ class SyntacticAnalysis:
             self.outList()
         self.expect("RPAREN")
         self.expect("SEMICOLON")
-        print("Exiting <ioStmt>")
+        #print("Exiting <ioStmt>")
 
     def outList(self):
-        print("Entering <outList>")
+        #print("Entering <outList>")
         self.out()
         while self.match("COMMA"):
             self.out()
-        print("Exiting <outList>")
+        #print("Exiting <outList>")
 
     def out(self):
         if not self.match("STRING"):
@@ -158,12 +160,12 @@ class SyntacticAnalysis:
                     self.expect("FLOAT")
 
     def whileStmt(self):
-        print("Entering <whileStmt>")
+        #print("Entering <whileStmt>")
         self.expect("WHILE")
         self.expr()
         self.expect("DO")
         self.stmt()
-        print("Exiting <whileStmt>")
+        #print("Exiting <whileStmt>")
 
     # def ifStmt(self):
     #     print("Entering <ifStmt>")
@@ -176,7 +178,7 @@ class SyntacticAnalysis:
     #     print("Exiting <ifStmt>")
 
     def ifStmt(self):
-        print("Entering <ifStmt>")
+        #print("Entering <ifStmt>")
         self.expect("IF")
 
         # Coletar tokens até encontrar THEN
@@ -190,14 +192,14 @@ class SyntacticAnalysis:
 
         if self.match("ELSE"):
             self.stmt()
-        print("Exiting <ifStmt>")
+        #print("Exiting <ifStmt>")
 
     def atrib(self):
-        print("Entering <atrib>")
+        #print("Entering <atrib>")
         self.expect("IDENTIFIER")
         self.expect("ASSIGN")
         self.expr()
-        print("Exiting <atrib>")
+        #print("Exiting <atrib>")
 
     def expr(self):
         self.orExpr()

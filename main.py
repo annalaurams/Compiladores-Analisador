@@ -17,9 +17,9 @@ def processar_arquivo(caminho_arquivo):
     lexer = LexicalAnalysis(source_code)
     tokens = lexer.analyze()
 
-    print("\nTokens gerados:")
-    for token in tokens:
-        print(token)
+    # print("\nTokens gerados:")
+    # for token in tokens:
+    #     print(token)
 
     try:
         parser = SyntacticAnalysis(tokens)
